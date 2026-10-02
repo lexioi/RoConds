@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Car Places</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0716; --panel: #181028; --line: #2f2150; --text: #f4efff; --muted: #a094c4;
+    --p1: #7c3aed; --p2: #a855f7; --p3: #d8b4fe; --live: #4ade80; --gold: #fbbf24;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: radial-gradient(900px 400px at 50% -10%, rgba(124,58,237,.35), transparent 70%), var(--bg);
+    color: var(--text);
+    font-family: "Sora", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+    padding: calc(env(safe-area-inset-top, 0px) + 16px) 20px 56px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  .top { display: flex; justify-content: flex-end; }
+  h1 { font-size: clamp(30px, 6vw, 52px); font-weight: 800; letter-spacing: -0.03em; text-align: center; }
+  .sub { color: var(--muted); margin-top: 8px; text-align: center; }
+
+  .premium-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: linear-gradient(160deg, rgba(124,58,237,.45), rgba(168,85,247,.15));
+    border: 1px solid var(--p2); color: var(--p3);
+    font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .04em;
+    padding: 9px 16px 8px; border-radius: 14px; cursor: pointer; transition: transform .15s, box-shadow .15s;
+  }
+  .premium-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(168,85,247,.4); }
+  .premium-btn svg { width: 26px; height: 26px; }
+  button:focus-visible, a:focus-visible { outline: 3px solid var(--p3); outline-offset: 2px; }
+
+  .timer {
+    margin: 22px auto 0; max-width: 520px;
+    background: linear-gradient(135deg, rgba(124,58,237,.35), rgba(168,85,247,.12));
+    border: 1px solid var(--p1); border-radius: 18px; padding: 16px 20px 18px; text-align: center;
+  }
+  .timer small { color: var(--p3); font-size: 14px; }
+  .clock { font-size: clamp(34px, 9vw, 52px); font-weight: 800; letter-spacing: .04em; font-variant-numeric: tabular-nums; margin: 4px 0 12px; }
+  .bar { height: 6px; background: rgba(255,255,255,.1); border-radius: 99px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--p1), var(--p3)); border-radius: 99px; transition: width 1s linear; }
+
+  .search {
+    margin: 28px 0 22px; display: flex; align-items: center; gap: 12px;
+    background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 0 16px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .search:focus-within { border-color: var(--p2); box-shadow: 0 0 0 4px rgba(168,85,247,.2); }
+  .search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--text); font: inherit; font-size: 16px; padding: 16px 0; }
+  .search input::placeholder { color: var(--muted); }
+  .count { color: var(--muted); font-size: 13px; white-space: nowrap; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+    display: flex; flex-direction: column; transition: transform .15s, border-color .15s, box-shadow .15s;
+  }
+  .card:hover { transform: translateY(-4px); border-color: var(--p2); box-shadow: 0 12px 30px rgba(124,58,237,.3); }
+  .card.hot { border-color: var(--gold); }
+  .thumb {
+    position: relative; aspect-ratio: 16 / 10; overflow: hidden;
+    background: linear-gradient(135deg, #3b1d78, #170d2c);
+    display: grid; place-items: center; font-size: 60px; font-weight: 800; color: rgba(255,255,255,.18);
+  }
+  .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .live {
+    position: absolute; left: 10px; top: 10px; z-index: 1; display: flex; align-items: center; gap: 7px;
+    background: rgba(12,7,22,.8); backdrop-filter: blur(6px);
+    padding: 5px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; color: var(--text);
+  }
+  .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--live); animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(74,222,128,.6); } 70%,100% { box-shadow: 0 0 0 7px rgba(74,222,128,0); } }
+  .badge-hot {
+    display: none; position: absolute; right: 10px; top: 10px; z-index: 1;
+    background: var(--gold); color: #2a1c00; font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 99px;
+  }
+  .card.hot .badge-hot { display: block; }
+  .info { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+  .name { font-size: 17px; font-weight: 700; line-height: 1.3; }
+  .play {
+    margin-top: auto; display: block; text-align: center; text-decoration: none;
+    background: linear-gradient(135deg, var(--p1), var(--p2)); color: #fff;
+    font-weight: 700; padding: 12px; border-radius: 11px; transition: filter .15s;
+  }
+  .play:hover { filter: brightness(1.15); }
+  .empty { color: var(--muted); padding: 40px 0; text-align: center; display: none; }
+
+  /* Premium modal */
+  dialog {
+    margin: auto; width: min(480px, calc(100% - 32px)); max-height: calc(100% - 32px);
+    background: var(--panel); color: var(--text); border: 1px solid var(--p2); border-radius: 22px; padding: 24px;
+    box-shadow: 0 30px 80px rgba(124,58,237,.45);
+  }
+  dialog::backdrop { background: rgba(8,4,16,.75); backdrop-filter: blur(4px); }
+  .m-head { display: flex; align-items: center; gap: 12px; }
+  .m-head svg { width: 36px; height: 36px; flex: none; }
+  .m-head h2 { font-size: 22px; font-weight: 800; flex: 1; }
+  .x { background: none; border: 0; color: var(--muted); font-size: 28px; line-height: 1; cursor: pointer; padding: 4px 8px; }
+  .m-sub { color: var(--muted); font-size: 14px; margin: 10px 0 18px; line-height: 1.5; }
+  .left { color: var(--p3); font-weight: 700; }
+  .gen {
+    width: 100%; border: 0; cursor: pointer; font: inherit; font-weight: 800; font-size: 16px; color: #fff;
+    background: linear-gradient(135deg, var(--p1), var(--p2)); padding: 15px; border-radius: 13px; transition: filter .15s, transform .1s;
+  }
+  .gen:hover:not(:disabled) { filter: brightness(1.15); }
+  .gen:active:not(:disabled) { transform: scale(.98); }
+  .gen:disabled { background: var(--line); color: var(--muted); cursor: not-allowed; }
+  .results { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+  .row {
+    display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.04);
+    border: 1px solid var(--line); border-radius: 13px; padding: 10px; animation: pop .35s ease-out;
+  }
+  @keyframes pop { from { transform: scale(.92); opacity: 0; } }
+  .row .t { width: 52px; height: 52px; border-radius: 10px; flex: none; overflow: hidden; position: relative;
+    background: linear-gradient(135deg, #3b1d78, #170d2c); display: grid; place-items: center; font-weight: 800; color: rgba(255,255,255,.3); }
+  .row .t img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .row .n { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row a, .row button {
+    font: inherit; font-size: 13px; font-weight: 700; text-decoration: none; cursor: pointer; border-radius: 9px; padding: 8px 12px;
+  }
+  .row a { background: var(--p1); color: #fff; border: 0; }
+  .row button { background: none; color: var(--p3); border: 1px solid var(--line); }
+  /* Mini browser popup */
+  #viewDlg { width: min(var(--vw, 440px), calc(100% - 24px)); padding: 0; overflow: hidden; }
+  .v-bar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #120b21; border-bottom: 1px solid var(--line); }
+  .v-url {
+    flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.07); border-radius: 99px; padding: 7px 14px; font-size: 13px; font-weight: 600;
+  }
+  .v-url svg { width: 13px; height: 13px; flex: none; color: var(--live); }
+  .v-url span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .v-bar .x { font-size: 24px; }
+  .v-body { position: relative; height: min(var(--vh, 480px), 62vh); background: #0f0a1c; }
+  .v-body .loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
+  .v-body iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .v-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); }
+  .v-foot a { color: var(--p3); font-weight: 700; text-decoration: none; white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { .live::before { animation: none; } .card, .bar i, .row { transition: none; animation: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="top">
+    <button class="premium-btn" id="premiumBtn" type="button" aria-label="Open Premium">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <defs><linearGradient id="dg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9d5ff"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
+        <path d="M6.5 3h11l4.5 6-10 12L2 9z" fill="url(#dg)"/>
+        <path d="M2 9h20M9 3l-2 6 5 12 5-12-2-6" fill="none" stroke="#5b21b6" stroke-width="1" stroke-linejoin="round" opacity=".55"/>
+      </svg>
+      <span id="premiumText">Premium</span>
+    </button>
+  </div>
+
+  <h1 id="siteTitle"></h1>
+  <p class="sub" id="siteSub"></p>
+
+  <div class="timer">
+    <small id="timerLabel"></small>
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="bar"><i id="barFill"></i></div>
+  </div>
+
+  <label class="search">
+    <input id="q" type="search" placeholder="Search places" autocomplete="off">
+    <span class="count" id="count"></span>
+  </label>
+
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty">No places found. Try another name.</p>
+</div>
+
+<dialog id="premiumDlg">
+  <div class="m-head">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3h11l4.5 6-10 12L2 9z" fill="url(#dg)"/></svg>
+    <h2 id="pTitle"></h2>
+    <button class="x" id="pClose" type="button" aria-label="Close">&times;</button>
+  </div>
+  <p class="m-sub" id="pSub"></p>
+  <button class="gen" id="genBtn" type="button"></button>
+  <div class="results" id="results"></div>
+</dialog>
+
+<dialog id="viewDlg">
+  <div class="v-bar">
+    <div class="v-url">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 9V7a5 5 0 0 0-10 0v2H5v12h14V9h-2zm-8-2a3 3 0 0 1 6 0v2H9V7z"/></svg>
+      <span id="vHost"></span>
+    </div>
+    <button class="x" id="vClose" type="button" aria-label="Close">&times;</button>
+  </div>
+  <div class="v-body">
+    <div class="loading">Loading…</div>
+    <iframe id="vFrame" title="Game page" referrerpolicy="no-referrer"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+  </div>
+  <div class="v-foot">
+    <span id="vHint"></span>
+  </div>
+</dialog>
+
+<script>
+/* =========================================================
+   SETTINGS — edit everything here
+   ========================================================= */
+
+const SITE = {
+  title: "Condo Places",
+  subtitle: "Pick a game and hit Play",
+  playText: "Play",
+  timerLabel: "New games in",
+  openInNewTab: false          // Play stays inside the mini window
+};
+
+const ROTATION = {
+  minutes: 60,                 // how often the games change (60 = 1 hour)
+  gamesShown: 8                // how many games are shown at once
+};
+
+const ONLINE = {
+  defaultMin: 5,               // used if a game has no min/max of its own
+  defaultMax: 25,
+  updateEverySecMin: 60,       // online changes at a random time between these two values
+  updateEverySecMax: 120
+};
+
+const POPUP = {
+  enabled: true,               // true = Play opens a small window on top of the site, false = new tab
+  width: 440,                  // window size in pixels
+  height: 480,
+  hint: "Blank page? The site may block embedding."
+};
+
+/* ---------------------------------------------------------
+   PLACES — add as many as you want, there is no limit.
+   (add  embed: false  to a game if it should always open in a new tab)
+   Copy one block { ... }, paste it below, don't forget the comma.
+
+   name   — game name
+   image  — image link. On Roblox: right-click the game image ->
+            "Copy image address" and paste it between the quotes.
+            Leave "" for a placeholder.
+   link   — where the Play button sends the person
+   min / max — (optional) lowest / highest fake online for this game
+   --------------------------------------------------------- */
+const PLACES = [
+  { name: "Condo fighting", image: "", link: "https://roblox.com.bz/games/15849200894/The-Backrooms-Experience?privateServerLinkCode=73486062817884606183487015086401", min: 5,  max: 25 },
+  { name: "Condo v4",        image: "", link: "https://roblox.com.bz/games/14873027659/The-Ghost-Hunter-Experience?privateServerLinkCode=73486062817884606183487015086401", min: 8,  max: 40 },
+  { name: "Condo V3",             image: "", link: "https://roblox.com.bz/games/84794756605363/Would-You-Rather-Sleepover-Tower?privateServerLinkCode=73486062817884606183487015086401", min: 3,  max: 18 },
+  { name: "Condo V2",         image: "", link: "https://roblox.com.bz/games/15115916251/The-Pizzeria-Experience?privateServerLinkCode=73486062817884606183487015086401", min: 10, max: 30 },
+  { name: "Condo V1",        image: "", link: "https://roblox.com.bz/games/17633788797/The-Diving-Experience?privateServerLinkCode=73486062817884606183487015086401", min: 5,  max: 22 },
+  { name: "WhorBlox",          image: "", link: "https://roblox.com.bz/games/15283142806/The-Daycare-Experience?privateServerLinkCode=73486062817884606183487015086401" },
+  { name: "Woman Thats Hides In Public [WTHIP]", image: "", link: "https://roblox.com.bz/games/139601289900681/The-Christmas-Incident?privateServerLinkCode=73486062817884606183487015086401" },
+  { name: "Condo Story",          image: "", link: "https://roblox.com.bz/games/16419947773/The-Streamer-Experience?privateServerLinkCode=73486062817884606183487015086401" },
+  { name: "FNAF Condo",        image: "", link: "https://roblox.com.bz/games/103553523501833/The-Spooktober-Experience?privateServerLinkCode=73486062817884606183487015086401" },
+  { name: "Sword Fighting Condo",       image: "", link: "https://roblox.com.bz/games/120902366147476/The-Chocolate-Factory-Incident?privateServerLinkCode=73486062817884606183487015086401" }
+];
+
+/* ---------------------------------------------------------
+   PREMIUM — the generator behind the diamond button.
+   Each press of "Generate" gives one random link from this list
+   (never the same one twice in a day). dailyLimit = how many
+   times a person can press per day.
+   Put at least as many links here as dailyLimit (5), more is fine.
+   --------------------------------------------------------- */
+const PREMIUM = {
+  buttonText: "Premium",
+  title: "Premium Generator",
+  dailyLimit: 5,
+  links: [
+    { name: "VIP Server #1", image: "", link: "https://roblox.com.bz/games/87207181438014/Spiral-Tower-X-To-VIP?privateServerLinkCode=73486062817884606183487015086401" },
+    { name: "VIP Server #2", image: "", link: "https://roblox.com.bz/games/87207181438014/Spiral-Tower-X-To-VIP?privateServerLinkCode=73486062817884606183487015086401" },
+    { name: "VIP Server #3", image: "", link: "https://roblox.com.bz/games/87207181438014/Spiral-Tower-X-To-VIP?privateServerLinkCode=73486062817884606183487015086401" },
+    { name: "VIP Server #4", image: "", link: "https://roblox.com.bz/games/87207181438014/Spiral-Tower-X-To-VIP?privateServerLinkCode=73486062817884606183487015086401" },
+    { name: "VIP Server #5", image: "", link: "https://roblox.com.bz/games/87207181438014/Spiral-Tower-X-To-VIP?privateServerLinkCode=73486062817884606183487015086401" }
+  ]
+};
+
+/* =========================================================
+   DON'T EDIT BELOW THIS LINE
+   ========================================================= */
+
+const $ = id => document.getElementById(id);
+const grid = $("grid");
+const PERIOD = ROTATION.minutes * 60 * 1000;
+const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+const pad = n => String(n).padStart(2, "0");
+
+document.title = SITE.title;
+$("siteTitle").textContent = SITE.title;
+$("siteSub").textContent = SITE.subtitle;
+$("timerLabel").textContent = SITE.timerLabel;
+$("premiumText").textContent = PREMIUM.buttonText;
+
+function makeThumb(el, p) {
+  el.textContent = (p.name || "?").trim().charAt(0).toUpperCase();
+  if (p.image) {
+    const img = document.createElement("img");
+    img.alt = p.name; img.loading = "lazy"; img.referrerPolicy = "no-referrer";
+    img.onerror = () => img.remove();
+    img.src = p.image;
+    el.appendChild(img);
+  }
+}
+
+/* ---------- Rotating games (same for everyone in the same window) ---------- */
+function seeded(seed) {
+  return function () {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function pickGames(windowId) {
+  const r = seeded(windowId), arr = PLACES.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(r() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr.slice(0, ROTATION.gamesShown);
+}
+
+let cards = [], timers = [], currentWindow = null;
+
+function markHot() {
+  let best = null;
+  cards.forEach(c => { c.el.classList.remove("hot"); if (!best || c.online > best.online) best = c; });
+  if (best) best.el.classList.add("hot");
+}
+
+function makeCard(p) {
+  const min = p.min ?? ONLINE.defaultMin, max = Math.max(p.max ?? ONLINE.defaultMax, min);
+  const card = document.createElement("article");
+  card.className = "card";
+  const obj = { p, el: card, online: 0 };
+
+  const thumb = document.createElement("div");
+  thumb.className = "thumb";
+  makeThumb(thumb, p);
+
+  const live = document.createElement("div");
+  live.className = "live";
+  const hot = document.createElement("div");
+  hot.className = "badge-hot";
+  hot.textContent = "HOT";
+  thumb.append(live, hot);
+
+  const setOnline = () => { obj.online = rand(min, max); live.textContent = obj.online + " playing"; };
+  setOnline();
+
+  const info = document.createElement("div");
+  info.className = "info";
+  const name = document.createElement("div");
+  name.className = "name";
+  name.textContent = p.name;
+  const play = document.createElement("a");
+  play.className = "play";
+  play.href = p.link;
+  play.textContent = SITE.playText;
+  if (SITE.openInNewTab) { play.target = "_blank"; play.rel = "noopener noreferrer"; }
+  bindPlay(play, p);
+  info.append(name, play);
+  card.append(thumb, info);
+
+  const tick = () => {
+    setOnline(); markHot();
+    timers.push(setTimeout(tick, rand(ONLINE.updateEverySecMin, ONLINE.updateEverySecMax) * 1000));
+  };
+  timers.push(setTimeout(tick, rand(ONLINE.updateEverySecMin, ONLINE.updateEverySecMax) * 1000));
+  return obj;
+}
+
+function render(windowId) {
+  currentWindow = windowId;
+  timers.forEach(clearTimeout); timers = [];
+  grid.innerHTML = "";
+  cards = pickGames(windowId).map(makeCard);
+  cards.forEach(c => grid.appendChild(c.el));
+  markHot();
+  filter();
+}
+
+function filter() {
+  const q = $("q").value.trim().toLowerCase();
+  let shown = 0;
+  cards.forEach(({ p, el }) => {
+    const ok = p.name.toLowerCase().includes(q);
+    el.style.display = ok ? "" : "none";
+    if (ok) shown++;
+  });
+  $("count").textContent = shown + " places";
+  $("empty").style.display = shown ? "none" : "block";
+}
+$("q").addEventListener("input", filter);
+
+function tickClock() {
+  const now = Date.now();
+  const windowId = Math.floor(now / PERIOD);
+  if (windowId !== currentWindow) render(windowId);
+  const left = (windowId + 1) * PERIOD - now;
+  const s = Math.floor(left / 1000);
+  $("clock").textContent = pad(Math.floor(s / 3600)) + ":" + pad(Math.floor(s % 3600 / 60)) + ":" + pad(s % 60);
+  $("barFill").style.width = ((1 - left / PERIOD) * 100) + "%";
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+/* ---------- Mini window popup ---------- */
+const viewDlg = $("viewDlg"), vFrame = $("vFrame");
+viewDlg.style.setProperty("--vw", POPUP.width + "px");
+viewDlg.style.setProperty("--vh", POPUP.height + "px");
+$("vHint").textContent = POPUP.hint;
+
+/* The player address text is intentionally fixed. */
+function openPopup(p) {
+  $("vHost").textContent = "roblox.com";
+  vFrame.title = p.name;
+  vFrame.src = p.link;
+  if (typeof viewDlg.showModal === "function") viewDlg.showModal();
+  else viewDlg.setAttribute("open", "");
+}
+function bindPlay(a, p) {
+  if (!POPUP.enabled || p.embed === false) return;
+  a.addEventListener("click", e => {
+    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return; /* keep ctrl/middle click working */
+    e.preventDefault();
+    openPopup(p);
+  });
+}
+$("vClose").addEventListener("click", () => viewDlg.close());
+viewDlg.addEventListener("click", e => { if (e.target === viewDlg) viewDlg.close(); });
+viewDlg.addEventListener("close", () => { vFrame.src = "about:blank"; });
+
+/* ---------- Premium generator ---------- */
+const STORE_KEY = "premium_gen_v1";
+const today = () => { const d = new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
+let pState = { day: today(), used: [] };
+
+try {
+  const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+  if (saved && saved.day === today() && Array.isArray(saved.used)) pState = saved;
+} catch (e) {}
+function savePState() { try { localStorage.setItem(STORE_KEY, JSON.stringify(pState)); } catch (e) {} }
+function checkNewDay() { if (pState.day !== today()) { pState = { day: today(), used: [] }; savePState(); } }
+
+const dlg = $("premiumDlg");
+$("pTitle").textContent = PREMIUM.title;
+
+function makeRow(p) {
+  const row = document.createElement("div");
+  row.className = "row";
+  const t = document.createElement("div");
+  t.className = "t";
+  makeThumb(t, p);
+  const n = document.createElement("div");
+  n.className = "n";
+  n.textContent = p.name;
+  const a = document.createElement("a");
+  a.href = p.link; a.textContent = SITE.playText;
+  if (SITE.openInNewTab) { a.target = "_blank"; a.rel = "noopener noreferrer"; }
+  bindPlay(a, p);
+  const c = document.createElement("button");
+  c.type = "button"; c.textContent = "Copy";
+  c.onclick = async () => {
+    try { await navigator.clipboard.writeText(p.link); }
+    catch (e) {
+      const ta = document.createElement("textarea");
+      ta.value = p.link; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch (e2) {}
+      ta.remove();
+    }
+    c.textContent = "Copied!";
+    setTimeout(() => { c.textContent = "Copy"; }, 1500);
+  };
+  row.append(t, n, a, c);
+  return row;
+}
+
+function renderPremium() {
+  checkNewDay();
+  const left = Math.max(PREMIUM.dailyLimit - pState.used.length, 0);
+  const noLinks = pState.used.length >= PREMIUM.links.length;
+  const done = left === 0 || noLinks;
+  $("pSub").innerHTML = done
+    ? "You've used all of today's links. Come back tomorrow for more."
+    : "Generate a game link. <span class=\"left\">" + left + " of " + PREMIUM.dailyLimit + " left today.</span>";
+  const btn = $("genBtn");
+  btn.disabled = done;
+  btn.textContent = done ? "Limit reached" : "Generate link";
+  const box = $("results");
+  box.innerHTML = "";
+  pState.used.slice().reverse().forEach(i => box.appendChild(makeRow(PREMIUM.links[i])));
+}
+
+$("genBtn").addEventListener("click", () => {
+  checkNewDay();
+  if (pState.used.length >= PREMIUM.dailyLimit) return;
+  const free = PREMIUM.links.map((_, i) => i).filter(i => !pState.used.includes(i));
+  if (!free.length) return;
+  pState.used.push(free[rand(0, free.length - 1)]);
+  savePState();
+  renderPremium();
+});
+$("premiumBtn").addEventListener("click", () => { renderPremium(); dlg.showModal(); });
+$("pClose").addEventListener("click", () => dlg.close());
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+</script>
+</body>
+</html>
