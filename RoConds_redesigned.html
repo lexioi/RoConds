@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b0914">
+  <title>Condo Places</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0914;
+      --surface: #12101d;
+      --surface-2: #191628;
+      --surface-3: #211c33;
+      --stroke: rgba(197, 174, 255, .13);
+      --stroke-strong: rgba(186, 143, 255, .38);
+      --text: #f7f3ff;
+      --muted: #a49ab9;
+      --purple: #9865ff;
+      --purple-2: #bd8cff;
+      --mint: #83e6c1;
+      --gold: #f3c979;
+      --danger: #ff8f9b;
+      --radius: 22px;
+      --shadow: 0 24px 80px rgba(0,0,0,.32);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; min-height: 100vh; color: var(--text);
+      background:
+        radial-gradient(900px 520px at 8% -12%, rgba(122,76,220,.24), transparent 65%),
+        radial-gradient(760px 520px at 100% 8%, rgba(81,113,190,.12), transparent 62%),
+        var(--bg);
+      font-family: "DM Sans", system-ui, sans-serif;
+    }
+    button, input { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--purple-2); outline-offset: 3px; }
+    .shell { width: min(1180px, calc(100% - 36px)); margin: 0 auto; padding: 26px 0 70px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 44px; }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      width: 42px; height: 42px; display: grid; place-items: center; flex: none;
+      border-radius: 14px; color: white; font: 700 21px "Space Grotesk", sans-serif;
+      background: linear-gradient(145deg, #a978ff, #6840c7);
+      box-shadow: 0 8px 24px rgba(142,93,255,.3);
+    }
+    .brand-name { font: 700 17px "Space Grotesk", sans-serif; letter-spacing: -.03em; }
+    .brand-caption { color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .top-actions { display: flex; align-items: center; gap: 9px; }
+    .button {
+      border: 1px solid var(--stroke); color: var(--text); background: rgba(255,255,255,.035);
+      border-radius: 13px; padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 700;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .button:hover { transform: translateY(-2px); border-color: var(--stroke-strong); background: rgba(163,120,255,.1); }
+    .button.primary { border: 0; color: white; background: linear-gradient(120deg, #8254eb, #a66cf4); box-shadow: 0 7px 22px rgba(130,84,235,.22); }
+    .button.primary:hover { background: linear-gradient(120deg, #9166f5, #b37bff); }
+    .button.gold { border-color: rgba(243,201,121,.32); color: #ffe0a1; background: rgba(243,201,121,.08); }
+    .button .button-icon { margin-right: 6px; }
+    .hero { display: grid; grid-template-columns: minmax(0,1fr) minmax(245px, 310px); gap: 22px; align-items: stretch; margin-bottom: 28px; }
+    .hero-main {
+      position: relative; overflow: hidden; min-height: 235px; padding: clamp(25px,5vw,48px);
+      border: 1px solid var(--stroke); border-radius: 28px;
+      background: linear-gradient(115deg, rgba(104,68,177,.28), rgba(32,26,52,.88) 62%, rgba(28,31,55,.8));
+      box-shadow: var(--shadow);
+    }
+    .hero-main::after {
+      content: ""; position: absolute; width: 300px; height: 300px; right: -80px; top: -110px;
+      border-radius: 50%; border: 1px solid rgba(209,184,255,.14);
+      box-shadow: 0 0 0 28px rgba(209,184,255,.025), 0 0 0 58px rgba(209,184,255,.02);
+      pointer-events: none;
+    }
+    .eyebrow { color: #c9aaff; font-size: 11px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
+    h1 { position: relative; z-index: 1; margin: 13px 0 10px; max-width: 600px; font: 700 clamp(34px,6vw,58px)/1.02 "Space Grotesk",sans-serif; letter-spacing: -.055em; }
+    .hero-copy { position: relative; z-index: 1; color: #c0b6d2; max-width: 470px; line-height: 1.65; font-size: 14px; }
+    .hero-side { display: flex; flex-direction: column; gap: 12px; }
+    .info-panel { flex: 1; padding: 20px; border: 1px solid var(--stroke); border-radius: 22px; background: rgba(22,19,35,.8); }
+    .info-label { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .countdown { margin: 9px 0 10px; font: 700 clamp(27px,4vw,35px) "Space Grotesk",sans-serif; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+    .progress { height: 5px; overflow: hidden; border-radius: 20px; background: rgba(255,255,255,.08); }
+    .progress > span { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg,var(--purple),var(--purple-2)); transition: width .5s linear; }
+    .info-note { color: var(--muted); font-size: 11px; margin-top: 10px; line-height: 1.5; }
+    .mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .mini-stat { padding: 16px; background: rgba(22,19,35,.8); border: 1px solid var(--stroke); border-radius: 18px; }
+    .mini-stat strong { display: block; font: 700 23px "Space Grotesk",sans-serif; }
+    .mini-stat span { color: var(--muted); font-size: 11px; }
+    .toolbar { display: flex; align-items: center; gap: 12px; margin: 34px 0 18px; }
+    .searchbox { flex: 1; display: flex; align-items: center; gap: 11px; padding: 0 15px; min-width: 0; border: 1px solid var(--stroke); border-radius: 15px; background: var(--surface); transition: border-color .2s, box-shadow .2s; }
+    .searchbox:focus-within { border-color: var(--stroke-strong); box-shadow: 0 0 0 4px rgba(153,101,255,.09); }
+    .search-icon { color: #9f8cbf; font-size: 18px; }
+    .searchbox input { width: 100%; min-width: 0; padding: 15px 0; color: var(--text); border: 0; outline: 0; background: transparent; font-size: 14px; }
+    .searchbox input::placeholder { color: #827994; }
+    .result-count { color: var(--muted); white-space: nowrap; font-size: 12px; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin: 22px 0 16px; }
+    .section-heading h2 { margin: 0; font: 700 21px "Space Grotesk",sans-serif; letter-spacing: -.025em; }
+    .section-heading p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .section-kicker { color: #b59bdf; font-size: 10px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    .grid { display: grid; grid-template-columns: repeat( auto-fill, minmax(235px, 1fr)); gap: 16px; }
+    .card {
+      min-width: 0; overflow: hidden; border-radius: 19px; border: 1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(26,22,42,.98), rgba(18,16,29,.98));
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .card:hover { transform: translateY(-4px); border-color: rgba(174,132,255,.45); box-shadow: 0 17px 38px rgba(0,0,0,.24); }
+    .card-media { position: relative; overflow: hidden; aspect-ratio: 16 / 9; display: grid; place-items: center; background: linear-gradient(135deg,#493279,#20203b 70%,#2d3758); }
+    .card-media::before { content: ""; position: absolute; width: 175px; height: 175px; border: 1px solid rgba(255,255,255,.10); border-radius: 50%; box-shadow: 0 0 0 20px rgba(255,255,255,.025), 0 0 0 42px rgba(255,255,255,.02); }
+    .card-fallback { position: relative; z-index: 1; color: rgba(255,255,255,.78); font: 700 54px "Space Grotesk",sans-serif; }
+    .card-media img { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; object-fit: cover; }
+    .card-tag { position: absolute; z-index: 3; top: 11px; left: 11px; padding: 6px 9px; border-radius: 99px; color: #e9dcff; background: rgba(14,11,22,.72); border: 1px solid rgba(255,255,255,.13); backdrop-filter: blur(9px); font-size: 10px; font-weight: 700; }
+    .card-body { padding: 15px; }
+    .card-title { min-height: 42px; margin: 0 0 13px; font-size: 15px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+    .card-footer { display: flex; align-items: center; gap: 9px; }
+    .play-link { flex: 1; display: inline-flex; justify-content: center; align-items: center; gap: 8px; padding: 11px 13px; border-radius: 11px; color: white; text-decoration: none; font-size: 12px; font-weight: 800; background: linear-gradient(110deg,#7950dc,#9b65ec); transition: filter .15s, transform .15s; }
+    .play-link:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .card-edit { width: 39px; height: 39px; display: grid; place-items: center; border: 1px solid var(--stroke); border-radius: 11px; background: rgba(255,255,255,.035); color: #c7b3e9; cursor: pointer; font-size: 16px; }
+    .card-edit:hover { border-color: var(--stroke-strong); background: rgba(153,101,255,.1); }
+    .empty { display: none; padding: 48px 20px; text-align: center; border: 1px dashed var(--stroke-strong); border-radius: 18px; color: var(--muted); }
+    .footer { padding-top: 42px; text-align: center; color: #766d89; font-size: 11px; }
+
+    dialog { color: var(--text); background: #151222; border: 1px solid var(--stroke-strong); border-radius: 23px; padding: 0; width: min(760px,calc(100% - 24px)); max-height: min(88vh,850px); box-shadow: 0 32px 100px rgba(0,0,0,.6); }
+    dialog::backdrop { background: rgba(5,4,10,.78); backdrop-filter: blur(7px); }
+    .dialog-inner { padding: 22px; }
+    .dialog-head { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 17px; border-bottom: 1px solid var(--stroke); }
+    .dialog-head > div { flex: 1; min-width: 0; }
+    .dialog-head h2 { margin: 0; font: 700 22px "Space Grotesk",sans-serif; }
+    .dialog-head p { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .close { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border: 1px solid var(--stroke); border-radius: 10px; background: rgba(255,255,255,.04); color: var(--muted); cursor: pointer; font-size: 21px; }
+    .editor-list { display: flex; flex-direction: column; gap: 11px; max-height: 55vh; overflow-y: auto; padding: 14px 3px 10px 0; }
+    .editor-section { color: #c5aaff; font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; margin: 5px 0 0; }
+    .editor-row { display: grid; grid-template-columns: minmax(0,1fr) 135px; gap: 13px; align-items: center; padding: 12px; border: 1px solid var(--stroke); border-radius: 15px; background: rgba(255,255,255,.025); }
+    .editor-fields { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .editor-name { color: var(--text); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+    .field-label { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .07em; }
+    .editor-input { width: 100%; min-width: 0; padding: 10px 11px; border: 1px solid var(--stroke); border-radius: 10px; background: #0e0c17; color: var(--text); font-size: 12px; outline: 0; }
+    .editor-input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(153,101,255,.12); }
+    .preview { position: relative; display: grid; place-items: center; overflow: hidden; width: 100%; aspect-ratio: 16/10; border-radius: 11px; background: linear-gradient(135deg,#493279,#20203b); color: rgba(255,255,255,.7); font: 700 27px "Space Grotesk",sans-serif; }
+    .preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .dialog-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 15px; border-top: 1px solid var(--stroke); }
+    .status { color: var(--muted); font-size: 11px; line-height: 1.4; }
+    .action-group { display: flex; gap: 8px; flex: none; }
+    .small-button { border: 1px solid var(--stroke); border-radius: 10px; padding: 10px 13px; background: rgba(255,255,255,.04); color: var(--text); cursor: pointer; font-size: 11px; font-weight: 700; }
+    .small-button.primary { border-color: transparent; background: linear-gradient(110deg,#7950dc,#9b65ec); }
+    .premium-list { display: flex; flex-direction: column; gap: 10px; padding: 16px 0 0; }
+    .premium-item { display: flex; align-items: center; gap: 12px; padding: 10px; border: 1px solid var(--stroke); border-radius: 14px; background: rgba(255,255,255,.025); }
+    .premium-thumb { width: 58px; height: 48px; position: relative; flex: none; display: grid; place-items: center; overflow: hidden; border-radius: 9px; background: linear-gradient(135deg,#493279,#20203b); font: 700 22px "Space Grotesk",sans-serif; }
+    .premium-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .premium-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+    .premium-link { text-decoration: none; color: #fff; background: #7950dc; border-radius: 9px; padding: 9px 11px; font-size: 11px; font-weight: 800; }
+    .copy-button { color: #d3c0f5; background: transparent; border: 1px solid var(--stroke); border-radius: 9px; padding: 8px 10px; cursor: pointer; font-size: 11px; font-weight: 700; }
+    .generate { width: 100%; margin-top: 16px; }
+    .generator-note { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 12px 0 0; }
+
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 26px,1180px); padding-top: 17px; }
+      .topbar { margin-bottom: 26px; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-main { min-height: 205px; }
+      .hero-side { display: grid; grid-template-columns: 1.2fr 1fr; }
+      .mini-stats { grid-template-columns: 1fr 1fr; }
+      .toolbar { margin-top: 26px; }
+    }
+    @media (max-width: 520px) {
+      .brand-caption { display: none; }
+      .top-actions { gap: 6px; }
+      .button { padding: 9px 10px; font-size: 11px; }
+      .hero-side { grid-template-columns: 1fr; }
+      .mini-stats { grid-template-columns: 1fr 1fr; }
+      .grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+      .card { border-radius: 15px; }
+      .card-body { padding: 11px; }
+      .card-title { min-height: 48px; font-size: 12px; margin-bottom: 10px; }
+      .play-link { padding: 10px 7px; font-size: 11px; }
+      .card-edit { width: 35px; height: 35px; }
+      .card-tag { top: 7px; left: 7px; font-size: 9px; }
+      .dialog-inner { padding: 15px; }
+      .editor-row { grid-template-columns: 1fr; }
+      .preview { aspect-ratio: 16/5; }
+      .dialog-actions { align-items: flex-start; flex-direction: column; }
+      .action-group { width: 100%; }
+      .action-group button { flex: 1; }
+      .result-count { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">R</div>
+        <div><div class="brand-name">RoConds</div><div class="brand-caption">Your game collection</div></div>
+      </div>
+      <div class="top-actions">
+        <button class="button gold" id="premiumOpen" type="button">✦ Premium</button>
+        <button class="button" id="editorOpen" type="button">⚙ Customize</button>
+      </div>
+    </header>
+
+    <section class="hero" aria-labelledby="siteTitle">
+      <div class="hero-main">
+        <div class="eyebrow">YOUR PERSONAL GAME HUB</div>
+        <h1 id="siteTitle">Condo Places</h1>
+        <p class="hero-copy" id="siteSubtitle">Pick a game, open a card and jump in. Your collection, all in one place.</p>
+      </div>
+      <div class="hero-side">
+        <div class="info-panel">
+          <div class="info-label">New selection in</div>
+          <div class="countdown" id="clock">--:--:--</div>
+          <div class="progress"><span id="progressFill"></span></div>
+          <div class="info-note">The featured selection refreshes automatically.</div>
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat"><strong id="totalCount">0</strong><span>Games in collection</span></div>
+          <div class="mini-stat"><strong id="shownCount">0</strong><span>Shown right now</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Game collection">
+      <div class="toolbar">
+        <label class="searchbox">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="search" type="search" placeholder="Search your collection…" autocomplete="off">
+        </label>
+        <span class="result-count" id="resultCount">0 games</span>
+      </div>
+      <div class="section-heading">
+        <div><div class="section-kicker">THE COLLECTION</div><h2>Explore games</h2><p>Your saved collection in one place.</p></div>
+      </div>
+      <div class="grid" id="gameGrid"></div>
+      <div class="empty" id="emptyState">No games match your search. Try another name.</div>
+    </section>
+
+    <footer class="footer">RoConds · Personal game collection</footer>
+  </main>
+
+  <dialog id="editorDialog" aria-labelledby="editorTitle">
+    <div class="dialog-inner">
+      <div class="dialog-head">
+        <div><h2 id="editorTitle">Customize card images</h2><p>Paste a direct HTTPS image URL for each card. Names and game links are kept as they are. Image settings are saved in this browser.</p></div>
+        <button class="close" id="editorClose" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="editor-list" id="editorList"></div>
+      <div class="dialog-actions">
+        <span class="status" id="editorStatus" role="status">Images are saved only on this device.</span>
+        <div class="action-group"><button class="small-button" id="resetImages" type="button">Reset images</button><button class="small-button primary" id="saveImages" type="button">Save images</button></div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="premiumDialog" aria-labelledby="premiumTitle">
+    <div class="dialog-inner">
+      <div class="dialog-head">
+        <div><h2 id="premiumTitle">Premium Generator</h2><p id="premiumDescription">Generate a random link from the Premium collection.</p></div>
+        <button class="close" id="premiumClose" type="button" aria-label="Close">×</button>
+      </div>
+      <button class="button primary generate" id="generatePremium" type="button">Generate link</button>
+      <p class="generator-note" id="premiumNote">Generated links are kept in this browser for today.</p>
+      <div class="premium-list" id="premiumResults"></div>
+    </div>
+  </dialog>
+
+  <script>
+    /* Site settings. Game names and destination links are intentionally kept as supplied. */
+    const SITE = {
+      title: "Condo Places",
+      subtitle: "Pick a game and hit Play",
+      playText: "Play"
+    };
+    const ROTATION = { minutes: 60, gamesShown: 8 };
+    const PREMIUM = {
+      dailyLimit: 5,
+      links: [
+        { name: "VIP Server #1", image: "", link: "https://roblox.com.bz/games/87207181438014/Spiral-Tower-X-To-VIP?privateServerLinkCode=73486062817884606183487015086401" },
+        { name: "VIP Server #2", image: "", link: "https://roblox.com.bz/games/87207181438014/Spiral-Tower-X-To-VIP?privateServerLinkCode=73486062817884606183487015086401" },
+        { name: "VIP Server #3", image: "", link: "https://roblox.com.bz/games/87207181438014/Spiral-Tower-X-To-VIP?privateServerLinkCode=73486062817884606183487015086401" },
+        { name: "VIP Server #4", image: "", link: "https://roblox.com.bz/games/87207181438014/Spiral-Tower-X-To-VIP?privateServerLinkCode=73486062817884606183487015086401" },
+        { name: "VIP Server #5", image: "", link: "https://roblox.com.bz/games/87207181438014/Spiral-Tower-X-To-VIP?privateServerLinkCode=73486062817884606183487015086401" }
+      ]
+    };
+    const PLACES = [
+      { name: "Condo fighting", image: "", link: "https://roblox.com.bz/games/15849200894/The-Backrooms-Experience?privateServerLinkCode=73486062817884606183487015086401", min: 5, max: 25 },
+      { name: "Condo v4", image: "", link: "https://roblox.com.bz/games/14873027659/The-Ghost-Hunter-Experience?privateServerLinkCode=73486062817884606183487015086401", min: 8, max: 40 },
+      { name: "Condo V3", image: "", link: "https://roblox.com.bz/games/84794756605363/Would-You-Rather-Sleepover-Tower?privateServerLinkCode=73486062817884606183487015086401", min: 3, max: 18 },
+      { name: "Condo V2", image: "", link: "https://roblox.com.bz/games/15115916251/The-Pizzeria-Experience?privateServerLinkCode=73486062817884606183487015086401", min: 10, max: 30 },
+      { name: "Condo V1", image: "", link: "https://roblox.com.bz/games/17633788797/The-Diving-Experience?privateServerLinkCode=73486062817884606183487015086401", min: 5, max: 22 },
+      { name: "WhorBlox", image: "", link: "https://roblox.com.bz/games/15283142806/The-Daycare-Experience?privateServerLinkCode=73486062817884606183487015086401" },
+      { name: "Woman Thats Hides In Public [WTHIP]", image: "", link: "https://roblox.com.bz/games/139601289900681/The-Christmas-Incident?privateServerLinkCode=73486062817884606183487015086401" },
+      { name: "Condo Story", image: "", link: "https://roblox.com.bz/games/16419947773/The-Streamer-Experience?privateServerLinkCode=73486062817884606183487015086401" },
+      { name: "FNAF Condo", image: "", link: "https://roblox.com.bz/games/103553523501833/The-Spooktober-Experience?privateServerLinkCode=73486062817884606183487015086401" },
+      { name: "Sword Fighting Condo", image: "", link: "https://roblox.com.bz/games/120902366147476/The-Chocolate-Factory-Incident?privateServerLinkCode=73486062817884606183487015086401" }
+    ];
+
+    const $ = id => document.getElementById(id);
+    const STORE_KEY = "roconds_image_settings_v1";
+    const PREMIUM_KEY = "roconds_premium_history_v1";
+    const groups = [
+      { id: "main", title: "Main collection", items: PLACES },
+      { id: "premium", title: "Premium collection", items: PREMIUM.links }
+    ];
+    const defaultImages = {
+      main: PLACES.map(item => item.image),
+      premium: PREMIUM.links.map(item => item.image)
+    };
+    let imageSettings = { main: [...defaultImages.main], premium: [...defaultImages.premium] };
+    let visibleGames = [];
+    let activeWindow = null;
+    const periodMs = ROTATION.minutes * 60 * 1000;
+
+    function loadImages() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+        if (!saved || typeof saved !== "object") return;
+        for (const group of groups) {
+          if (Array.isArray(saved[group.id])) {
+            imageSettings[group.id] = group.items.map((_, i) => typeof saved[group.id][i] === "string" ? saved[group.id][i] : "");
+          }
+        }
+      } catch (_) { /* Browser storage may be unavailable. */ }
+    }
+    function imageFor(group, index) {
+      return imageSettings[group]?.[index] || groups.find(g => g.id === group)?.items[index]?.image || "";
+    }
+    function safeImageUrl(value) {
+      try { return new URL(value).protocol === "https:"; } catch (_) { return false; }
+    }
+    function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function pad(number) { return String(number).padStart(2, "0"); }
+    function seeded(seed) {
+      return function () {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    function pickGames(windowId) {
+      const random = seeded(windowId);
+      const list = PLACES.map((item, index) => ({ item, index }));
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+      }
+      return list.slice(0, ROTATION.gamesShown);
+    }
+    function makeImage(media, imageUrl, alt, fallbackText) {
+      const fallback = document.createElement("span");
+      fallback.className = "card-fallback";
+      fallback.textContent = fallbackText;
+      media.appendChild(fallback);
+      if (imageUrl) {
+        const img = document.createElement("img");
+        img.alt = alt;
+        img.loading = "lazy";
+        img.referrerPolicy = "no-referrer";
+        img.src = imageUrl;
+        img.addEventListener("error", () => img.remove(), { once: true });
+        media.appendChild(img);
+      }
+    }
+    function createGameCard(entry) {
+      const { item, index } = entry;
+      const card = document.createElement("article");
+      card.className = "card";
+      const media = document.createElement("div");
+      media.className = "card-media";
+      makeImage(media, imageFor("main", index), item.name, (item.name || "?").trim().charAt(0).toUpperCase());
+      const tag = document.createElement("span");
+      tag.className = "card-tag";
+      tag.textContent = "GAME";
+      media.appendChild(tag);
+      const body = document.createElement("div");
+      body.className = "card-body";
+      const title = document.createElement("h3");
+      title.className = "card-title";
+      title.textContent = item.name;
+      const footer = document.createElement("div");
+      footer.className = "card-footer";
+      const play = document.createElement("a");
+      play.className = "play-link";
+      play.href = item.link;
+      play.target = "_blank";
+      play.rel = "noopener noreferrer";
+      play.textContent = SITE.playText + " ↗";
+      const edit = document.createElement("button");
+      edit.className = "card-edit";
+      edit.type = "button";
+      edit.title = "Change this card image";
+      edit.setAttribute("aria-label", "Change image for " + item.name);
+      edit.textContent = "✎";
+      edit.addEventListener("click", () => openEditor(index));
+      footer.append(play, edit);
+      body.append(title, footer);
+      card.append(media, body);
+      return card;
+    }
+    function renderGames(windowId) {
+      activeWindow = windowId;
+      visibleGames = pickGames(windowId);
+      filterGames();
+    }
+    function filterGames() {
+      const query = $("search").value.trim().toLocaleLowerCase();
+      const grid = $("gameGrid");
+      grid.replaceChildren();
+      let matches = 0;
+      for (const entry of visibleGames) {
+        if (!entry.item.name.toLocaleLowerCase().includes(query)) continue;
+        grid.appendChild(createGameCard(entry));
+        matches++;
+      }
+      $("shownCount").textContent = String(matches);
+      $("resultCount").textContent = matches + (matches === 1 ? " game" : " games");
+      $("emptyState").style.display = matches ? "none" : "block";
+    }
+    function updateClock() {
+      const now = Date.now();
+      const windowId = Math.floor(now / periodMs);
+      if (windowId !== activeWindow) renderGames(windowId);
+      const remaining = (windowId + 1) * periodMs - now;
+      const seconds = Math.floor(remaining / 1000);
+      $("clock").textContent = pad(Math.floor(seconds / 3600)) + ":" + pad(Math.floor(seconds % 3600 / 60)) + ":" + pad(seconds % 60);
+      $("progressFill").style.width = ((1 - remaining / periodMs) * 100) + "%";
+    }
+
+    /* Image editor: only image URLs are editable here; names and destination links stay unchanged. */
+    const editorDialog = $("editorDialog");
+    function makeEditorRow(group, index, item) {
+      const row = document.createElement("div");
+      row.className = "editor-row";
+      const fields = document.createElement("div");
+      fields.className = "editor-fields";
+      const name = document.createElement("div");
+      name.className = "editor-name";
+      name.textContent = item.name;
+      const label = document.createElement("label");
+      label.className = "field-label";
+      label.textContent = "IMAGE URL";
+      const input = document.createElement("input");
+      input.className = "editor-input";
+      input.type = "url";
+      input.placeholder = "https://example.com/image.jpg";
+      input.value = imageFor(group, index);
+      input.dataset.group = group;
+      input.dataset.index = String(index);
+      const preview = document.createElement("div");
+      preview.className = "preview";
+      preview.textContent = item.name.trim().charAt(0).toUpperCase() || "?";
+      const previewImage = document.createElement("img");
+      previewImage.alt = "Preview for " + item.name;
+      previewImage.hidden = !input.value;
+      if (input.value) previewImage.src = input.value;
+      previewImage.addEventListener("error", () => { previewImage.hidden = true; }, { once: true });
+      preview.appendChild(previewImage);
+      input.addEventListener("input", () => {
+        const value = input.value.trim();
+        previewImage.hidden = !safeImageUrl(value);
+        if (safeImageUrl(value)) {
+          previewImage.src = value;
+        } else {
+          previewImage.removeAttribute("src");
+        }
+      });
+      fields.append(name, label, input);
+      row.append(fields, preview);
+      return row;
+    }
+    function renderEditor() {
+      const list = $("editorList");
+      list.replaceChildren();
+      for (const group of groups) {
+        const heading = document.createElement("h3");
+        heading.className = "editor-section";
+        heading.textContent = group.title;
+        list.appendChild(heading);
+        group.items.forEach((item, index) => list.appendChild(makeEditorRow(group.id, index, item)));
+      }
+    }
+    function openEditor(focusIndex = null) {
+      renderEditor();
+      $("editorStatus").textContent = "Images are saved only on this device.";
+      editorDialog.showModal();
+      if (focusIndex !== null) {
+        const field = editorDialog.querySelector('input[data-group="main"][data-index="' + focusIndex + '"]');
+        if (field) field.focus();
+      }
+    }
+    $("editorOpen").addEventListener("click", () => openEditor());
+    $("editorClose").addEventListener("click", () => editorDialog.close());
+    editorDialog.addEventListener("click", event => { if (event.target === editorDialog) editorDialog.close(); });
+    $("saveImages").addEventListener("click", () => {
+      const next = { main: [...defaultImages.main], premium: [...defaultImages.premium] };
+      const inputs = editorDialog.querySelectorAll("input[data-group]");
+      for (const input of inputs) {
+        const value = input.value.trim();
+        if (value && !safeImageUrl(value)) {
+          $("editorStatus").textContent = "Please use a valid HTTPS image URL.";
+          input.focus();
+          return;
+        }
+        next[input.dataset.group][Number(input.dataset.index)] = value;
+      }
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(next));
+        imageSettings = next;
+        filterGames();
+        $("editorStatus").textContent = "Saved! Your card images have been updated in this browser.";
+      } catch (_) {
+        $("editorStatus").textContent = "Could not save settings. Check your browser storage settings.";
+      }
+    });
+    $("resetImages").addEventListener("click", () => {
+      imageSettings = { main: [...defaultImages.main], premium: [...defaultImages.premium] };
+      try { localStorage.removeItem(STORE_KEY); } catch (_) { /* Ignore storage errors. */ }
+      renderEditor();
+      filterGames();
+      $("editorStatus").textContent = "All card images have been reset.";
+    });
+
+    /* Premium link picker. */
+    const premiumDialog = $("premiumDialog");
+    function currentDay() {
+      const date = new Date();
+      return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate());
+    }
+    function loadPremiumState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(PREMIUM_KEY) || "null");
+        if (saved && saved.day === currentDay() && Array.isArray(saved.used)) return saved;
+      } catch (_) { /* Ignore bad or unavailable storage. */ }
+      return { day: currentDay(), used: [] };
+    }
+    let premiumState = loadPremiumState();
+    function savePremiumState() {
+      try { localStorage.setItem(PREMIUM_KEY, JSON.stringify(premiumState)); } catch (_) { /* Ignore storage errors. */ }
+    }
+    function renderPremium() {
+      if (premiumState.day !== currentDay()) premiumState = { day: currentDay(), used: [] };
+      const left = Math.max(0, Math.min(PREMIUM.dailyLimit, PREMIUM.links.length) - premiumState.used.length);
+      $("premiumDescription").textContent = left ? (left + " of " + Math.min(PREMIUM.dailyLimit, PREMIUM.links.length) + " links left today.") : "You have used today's links. Come back tomorrow for more.";
+      $("generatePremium").disabled = left === 0;
+      $("generatePremium").style.opacity = left === 0 ? ".55" : "1";
+      $("premiumResults").replaceChildren();
+      premiumState.used.slice().reverse().forEach(index => {
+        const item = PREMIUM.links[index];
+        const row = document.createElement("div");
+        row.className = "premium-item";
+        const thumb = document.createElement("div");
+        thumb.className = "premium-thumb";
+        thumb.textContent = item.name.trim().charAt(0).toUpperCase();
+        const image = imageFor("premium", index);
+        if (image) {
+          const img = document.createElement("img");
+          img.alt = item.name;
+          img.src = image;
+          img.referrerPolicy = "no-referrer";
+          img.addEventListener("error", () => img.remove(), { once: true });
+          thumb.appendChild(img);
+        }
+        const name = document.createElement("div");
+        name.className = "premium-name";
+        name.textContent = item.name;
+        const link = document.createElement("a");
+        link.className = "premium-link";
+        link.href = item.link;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "Open ↗";
+        const copy = document.createElement("button");
+        copy.className = "copy-button";
+        copy.type = "button";
+        copy.textContent = "Copy";
+        copy.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(item.link);
+            copy.textContent = "Copied";
+          } catch (_) {
+            copy.textContent = "Copy failed";
+          }
+          setTimeout(() => { copy.textContent = "Copy"; }, 1400);
+        });
+        row.append(thumb, name, link, copy);
+        $("premiumResults").appendChild(row);
+      });
+    }
+    $("premiumOpen").addEventListener("click", () => { renderPremium(); premiumDialog.showModal(); });
+    $("premiumClose").addEventListener("click", () => premiumDialog.close());
+    premiumDialog.addEventListener("click", event => { if (event.target === premiumDialog) premiumDialog.close(); });
+    $("generatePremium").addEventListener("click", () => {
+      if (premiumState.day !== currentDay()) premiumState = { day: currentDay(), used: [] };
+      if (premiumState.used.length >= Math.min(PREMIUM.dailyLimit, PREMIUM.links.length)) return;
+      const available = PREMIUM.links.map((_, index) => index).filter(index => !premiumState.used.includes(index));
+      if (!available.length) return;
+      premiumState.used.push(available[randomInt(0, available.length - 1)]);
+      savePremiumState();
+      renderPremium();
+    });
+
+    document.title = SITE.title;
+    $("siteTitle").textContent = SITE.title;
+    $("siteSubtitle").textContent = "Pick a game and hit Play";
+    $("totalCount").textContent = String(PLACES.length);
+    $("search").addEventListener("input", filterGames);
+    loadImages();
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>
